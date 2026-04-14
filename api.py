@@ -44,8 +44,10 @@ def extract_ofp_data(text):
         m = re.search(r'\bFL\s+(\d{3})/', text)
     data["flight_level"]       = m.group(1) if m else None
     # Trip fuel = E.FUEL on the DEST line (the number right after the arrival airport code)
-    m = re.search(r'^DEST\s+[A-Z]{4}\s+(\d{5,6})', text, re.MULTILINE)
+    # Estimated time = E.TME on the DEST line (HH/MM after the dots)
+    m = re.search(r'^DEST\s+[A-Z]{4}\s+(\d{5,6})[\s.]+(\d{2}/\d{2})', text, re.MULTILINE)
     data["trip_fuel_kg"]       = strip_zeros(m.group(1)) if m else None
+    data["estimated_time"]     = m.group(2) if m else None
     m = re.search(r'^ALT\s+(?:[A-Z]{4}\s+)?(\d{5,6})', text, re.MULTILINE)
     data["alternate_fuel_kg"]  = strip_zeros(m.group(1)) if m else None
     m = re.search(r'^F\.R\.\s+(\d{5,6})', text, re.MULTILINE)
