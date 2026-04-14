@@ -43,19 +43,13 @@ def extract_ofp_data(text):
     if not m:
         m = re.search(r'\bFL\s+(\d{3})/', text)
     data["flight_level"]       = m.group(1) if m else None
-    m = re.search(r'^TOF\s+(\d{5,6})', text, re.MULTILINE)
+    # Trip fuel = E.FUEL on the DEST line (the number right after the arrival airport code)
+    m = re.search(r'^DEST\s+[A-Z]{4}\s+(\d{5,6})', text, re.MULTILINE)
     data["trip_fuel_kg"]       = strip_zeros(m.group(1)) if m else None
-    m = re.search(r'^BLOCK\s+(\d{5,6})', text, re.MULTILINE)
-    data["block_fuel_kg"]      = strip_zeros(m.group(1)) if m else None
     m = re.search(r'^ALT\s+(?:[A-Z]{4}\s+)?(\d{5,6})', text, re.MULTILINE)
-    alt = strip_zeros(m.group(1)) if m else None
-    data["alternate_fuel_kg"]  = alt
+    data["alternate_fuel_kg"]  = strip_zeros(m.group(1)) if m else None
     m = re.search(r'^F\.R\.\s+(\d{5,6})', text, re.MULTILINE)
-    fr = strip_zeros(m.group(1)) if m else None
-    data["final_reserve_kg"]   = fr
-    data["minimum_fuel_kg"]    = int(alt) + int(fr) if alt and fr else None
-    m = re.search(r'^BLOCK\s+\d+[\s.]+(\d{2}/\d{2})', text, re.MULTILINE)
-    data["block_time"]         = m.group(1) if m else None
+    data["final_reserve_kg"]   = strip_zeros(m.group(1)) if m else None
     m = re.search(r'\bEPLD\s+(\d+)', text)
     data["epld_kg"]            = strip_zeros(m.group(1)) if m else None
     m = re.search(r'\bEZFW\s+(\d+)', text)
