@@ -1,6 +1,5 @@
 import io
 import re
-import base64
 import pdfplumber
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -74,7 +73,6 @@ def extract_ofp_data(text):
 def get_ofp(req: FlightRequest):
     flight    = req.flight.strip().upper()
     pdf_bytes = []
-    screenshot_b64 = None
     ofp_text  = None
     ofp_data  = {}
 
@@ -154,23 +152,7 @@ def get_ofp(req: FlightRequest):
                 return {"status": "error", "message": "Could not find View OFP"}
 
             ofp_el.click()
-            page.wait_for_timeout(1000)
-
-            modal_el = None
-            for sel in ["[role='dialog']", "[class*='modal']", "[class*='overlay']", "[class*='viewer']"]:
-                try:
-                    loc = page.locator(sel).first
-                    loc.wait_for(state="visible", timeout=8000)
-                    modal_el = loc
-                    break
-                except PlaywrightTimeout:
-                    continue
-
-            page.wait_for_timeout(1000)
-            if modal_el:
-                screenshot_b64 = base64.b64encode(modal_el.screenshot()).decode()
-            else:
-                screenshot_b64 = base64.b64encode(page.screenshot()).decode()
+            page.wait_for_timeout(3000)
 
             if pdf_bytes:
                 full_text = []
@@ -185,11 +167,10 @@ def get_ofp(req: FlightRequest):
             browser.close()
 
         return {
-            "status":     "ok",
-            "flight":     flight,
-            "data":       ofp_data,
-            "screenshot": screenshot_b64,   # base64 PNG
-            "text":       ofp_text,
+            "status": "ok",
+            "flight": flight,
+            "data":   ofp_data,
+            "text":   ofp_text,
         }
 
     except Exception as e:
